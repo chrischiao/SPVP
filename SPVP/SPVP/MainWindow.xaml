@@ -1,0 +1,48 @@
+﻿<Window x:Class="SPVP.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vlc="clr-namespace:Vlc.DotNet.Wpf;assembly=Vlc.DotNet.Wpf"
+        xmlns:local="clr-namespace:SPVP"
+        mc:Ignorable="d"
+        Title="SPVP" Height="500" Width="800" Loaded="Window_Loaded" Icon="video_128px.ico">
+    <Window.Resources>
+        <RoutedUICommand x:Key="Open"/>
+        <RoutedUICommand x:Key="Forward"/>
+        <RoutedUICommand x:Key="Backward"/>
+        <RoutedUICommand x:Key="TogglePause"/>
+        <RoutedUICommand x:Key="VolUp"/>
+        <RoutedUICommand x:Key="VolDown"/>
+        <RoutedUICommand x:Key="ToggleMute"/>
+        <RoutedUICommand x:Key="Close"/>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource Open}" Executed="Open"/>
+        <CommandBinding Command="{StaticResource TogglePause}" Executed="TogglePause"/>
+        <CommandBinding Command="{StaticResource Forward}" Executed="Forward"/>
+        <CommandBinding Command="{StaticResource Backward}" Executed="Backward"/>
+        <CommandBinding Command="{StaticResource VolUp}" Executed="VolUp"/>
+        <CommandBinding Command="{StaticResource VolDown}" Executed="VolDown"/>
+        <CommandBinding Command="{StaticResource VolDown}" Executed="ToggleMute"/>
+        <CommandBinding Command="{StaticResource Close}" Executed="Close"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Gesture="Control+O" Command="{StaticResource Open}"/>
+        <KeyBinding Gesture="Space" Command="{StaticResource TogglePause}"/>
+        <KeyBinding Gesture="Right" Command="{StaticResource Forward}"/>
+        <KeyBinding Gesture="Left" Command="{StaticResource Backward}"/>
+        <KeyBinding Gesture="Up" Command="{StaticResource VolUp}"/>
+        <KeyBinding Gesture="Down" Command="{StaticResource VolDown}"/>
+        <KeyBinding Gesture="Control+M" Command="{StaticResource ToggleMute}"/>
+        <KeyBinding Gesture="Control+L" Command="{StaticResource Close}"/>
+    </Window.InputBindings>
+    <Grid>
+        <vlc:VlcControl x:Name="VlcControl" />
+        <TextBox x:Name="tbPath" VerticalAlignment="Center" Margin="20" Visibility="Hidden" KeyDown="TbPath_KeyDown"></TextBox>
+        <TextBlock x:Name="progress" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" 
+                   Foreground="Yellow" Background="Transparent" FontSize="20" Visibility="Hidden"/>
+        <TextBlock x:Name="volumn" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" 
+                   Foreground="Yellow" Background="Transparent" FontSize="20" Visibility="Hidden"/>
+    </Grid>
+</Window>
