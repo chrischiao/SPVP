@@ -56,12 +56,6 @@ namespace SPVP
             }
         }
 
-        private void Play(string filePath)
-        {
-            Player.Play(new Uri(filePath));
-            _isPlaying = true;
-        }
-
         private void Open(object sender, ExecutedRoutedEventArgs e)
         {
             if (Player != null)
@@ -85,6 +79,38 @@ namespace SPVP
             }
         }
 
+        private void Grid_Drop(object sender, DragEventArgs e)
+        {
+            string file = ((System.Array)e.Data.GetData(System.Windows.DataFormats.FileDrop)).GetValue(0).ToString();
+            Play(file);
+        }
+
+        private void Play(string filePath)
+        {
+            try
+            {
+                Player.Play(new Uri(filePath));
+                _isPlaying = true;
+            }
+            catch
+            { }
+        }
+
+        private void Close(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (_isPlaying)
+            {
+                new Task(() =>
+                {
+                    this.VlcControl.SourceProvider.MediaPlayer.Stop();//这里要开线程处理，不然会阻塞播放
+                    _isPlaying = false;
+
+                }).Start();
+            }
+        }
+
+        #region progress
+
         private void TogglePause(object sender, ExecutedRoutedEventArgs e)
         {
             if (_isPlaying)
@@ -92,16 +118,12 @@ namespace SPVP
                 if (_isPause)
                 {
                     Player.Play();
-                    this.progress.Visibility = Visibility.Hidden;
+                    HideProgress();
                 }
                 else
                 {
                     Player.Pause();
-
-                    int totalMins = (int)(Player.Length / 1000 / 60);
-                    int current = (int)(totalMins * Player.Position);
-                    this.progress.Text = $"{current} / {totalMins}";
-                    this.progress.Visibility = Visibility.Visible;
+                    ShowProgress();
                 }
 
                 _isPause = !_isPause;
@@ -122,6 +144,9 @@ namespace SPVP
                 float p = OFFSET / Player.Length;
                 if(Player.Position +p < 0.99)
                     Player.Position += p; // Position为百分比，要小于1，等于1会停止
+
+                ShowProgress();
+                HideProgress(2000);
             }
         }
 
@@ -139,8 +164,35 @@ namespace SPVP
                 float p = OFFSET / Player.Length;
                 if (Player.Position - p > 0.0)
                     Player.Position -= p;
+
+                ShowProgress();
+                HideProgress(2000);
             }
         }
+
+        private void ShowProgress()
+        {
+            int totalMins = (int)(Player.Length / 1000 / 60);
+            int current = (int)(totalMins * Player.Position);
+            this.progress.Text = $"{current} / {totalMins}";
+            this.progress.Visibility = Visibility.Visible;
+        }
+
+        private void HideProgress(int delay = 0)
+        {
+            if (delay > 100)
+            {
+                new Thread(() =>
+                {
+                    Thread.Sleep(delay);
+                    this.Dispatcher.BeginInvoke(new Action(() => { this.progress.Visibility = Visibility.Hidden; }));
+                }).Start();
+            }
+            else
+                this.progress.Visibility = Visibility.Hidden;
+        }
+
+        #endregion
 
         #region Audio Volume
 
@@ -159,13 +211,7 @@ namespace SPVP
                 else if (Player.Audio.Volume < 180)
                     Player.Audio.Volume += 10;
 
-                this.volumn.Text = Player.Audio.Volume.ToString();
-                this.volumn.Visibility = Visibility.Visible;
-                new Thread(()=> 
-                {
-                    Thread.Sleep(2000);
-                    this.Dispatcher.BeginInvoke(new Action(() => { this.volumn.Visibility = Visibility.Hidden; }));
-                }).Start();
+                ShowVolumn();
             }
         }
 
@@ -178,13 +224,7 @@ namespace SPVP
                 else if (Player.Audio.Volume > 10)
                     Player.Audio.Volume -= 10;
 
-                this.volumn.Text = Player.Audio.Volume.ToString();
-                this.volumn.Visibility = Visibility.Visible;
-                new Thread(() =>
-                {
-                    Thread.Sleep(2000);
-                    this.Dispatcher.BeginInvoke(new Action(() => { this.volumn.Visibility = Visibility.Hidden; }));
-                }).Start();
+                ShowVolumn();
             }
         }
 
@@ -194,19 +234,17 @@ namespace SPVP
                 Player.Audio.ToggleMute();
         }
 
-        #endregion
-
-        private void Close(object sender, ExecutedRoutedEventArgs e)
+        private void ShowVolumn(int duration = 2000)
         {
-            if (_isPlaying)
+            this.volumn.Text = Player.Audio.Volume.ToString();
+            this.volumn.Visibility = Visibility.Visible;
+            new Thread(() =>
             {
-                new Task(() =>
-                {
-                    this.VlcControl.SourceProvider.MediaPlayer.Stop();//这里要开线程处理，不然会阻塞播放
-                    _isPlaying = false;
-
-                }).Start();
-            }
+                Thread.Sleep(2000);
+                this.Dispatcher.BeginInvoke(new Action(() => { this.volumn.Visibility = Visibility.Hidden; }));
+            }).Start();
         }
+
+        #endregion
     }
 }

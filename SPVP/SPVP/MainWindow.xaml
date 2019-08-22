@@ -37,7 +37,7 @@
         <KeyBinding Gesture="Control+M" Command="{StaticResource ToggleMute}"/>
         <KeyBinding Gesture="Control+L" Command="{StaticResource Close}"/>
     </Window.InputBindings>
-    <Grid>
+    <Grid AllowDrop="True" Drop="Grid_Drop">
         <vlc:VlcControl x:Name="VlcControl" />
         <TextBox x:Name="tbPath" VerticalAlignment="Center" Margin="20" Visibility="Hidden" KeyDown="TbPath_KeyDown"></TextBox>
         <TextBlock x:Name="progress" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" 
