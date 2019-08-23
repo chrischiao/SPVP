@@ -54,10 +54,7 @@ namespace SPVP
                 Player.Audio.Volume = 30;
 
                 if (File.Exists(VideoPath))
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        Play(VideoPath);
-                    }));
+                    Dispatcher.BeginInvoke(new Action(() => { Play(VideoPath); }));
             }
         }
 
@@ -66,9 +63,7 @@ namespace SPVP
             _volumnTimer.Close();
 
             if (_isPlaying)
-            {
                 Stop();
-            }
         }
 
         private void Grid_Drop(object sender, DragEventArgs e)
@@ -107,7 +102,7 @@ namespace SPVP
             {
                 new Task(() =>
                 {
-                    Player.Stop();//这里要开线程处理，不然会阻塞播放
+                    Player.Stop();
                     _isPlaying = false;
 
                 }).Start();
@@ -162,7 +157,7 @@ namespace SPVP
 
                 float p = OFFSET / Player.Length;
                 if(Player.Position +p < 0.99)
-                    Player.Position += p; // Position为百分比，要小于1，等于1会停止
+                    Player.Position += p;
 
                 ShowProgress(1500);
             }
@@ -196,6 +191,8 @@ namespace SPVP
 
         private void ShowProgress(int duration = -1)
         {
+            _progressTimer.Stop();
+
             string total = TimeSpan.FromSeconds((int)(Player.Length / 1000)).ToString();
             string current = TimeSpan.FromSeconds((int)(Player.Time / 1000)).ToString();
             this.progress.Text = $"{current} / {total}";
@@ -203,7 +200,6 @@ namespace SPVP
 
             if (duration > 100)
             {
-                _progressTimer.Stop();
                 _progressTimer.Interval = duration;
                 _progressTimer.Start();
             }
