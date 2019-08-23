@@ -6,7 +6,8 @@
         xmlns:vlc="clr-namespace:Vlc.DotNet.Wpf;assembly=Vlc.DotNet.Wpf"
         xmlns:local="clr-namespace:SPVP"
         mc:Ignorable="d"
-        Title="SPVP" Height="500" Width="800" Loaded="Window_Loaded" Icon="video_128px.ico">
+        Title="SPVP" Height="500" Width="800" Icon="video_128px.ico"
+        Loaded="Window_Loaded" Closed="Window_Closed">
     <Window.Resources>
         <RoutedUICommand x:Key="Open"/>
         <RoutedUICommand x:Key="Forward"/>
@@ -15,7 +16,7 @@
         <RoutedUICommand x:Key="VolUp"/>
         <RoutedUICommand x:Key="VolDown"/>
         <RoutedUICommand x:Key="ToggleMute"/>
-        <RoutedUICommand x:Key="Close"/>
+        <RoutedUICommand x:Key="Stop"/>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource Open}" Executed="Open"/>
@@ -25,7 +26,7 @@
         <CommandBinding Command="{StaticResource VolUp}" Executed="VolUp"/>
         <CommandBinding Command="{StaticResource VolDown}" Executed="VolDown"/>
         <CommandBinding Command="{StaticResource VolDown}" Executed="ToggleMute"/>
-        <CommandBinding Command="{StaticResource Close}" Executed="Close"/>
+        <CommandBinding Command="{StaticResource Stop}" Executed="Stop"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Gesture="Control+O" Command="{StaticResource Open}"/>
@@ -35,14 +36,15 @@
         <KeyBinding Gesture="Up" Command="{StaticResource VolUp}"/>
         <KeyBinding Gesture="Down" Command="{StaticResource VolDown}"/>
         <KeyBinding Gesture="Control+M" Command="{StaticResource ToggleMute}"/>
-        <KeyBinding Gesture="Control+L" Command="{StaticResource Close}"/>
+        <KeyBinding Gesture="Control+Q" Command="{StaticResource Stop}"/>
     </Window.InputBindings>
-    <Grid AllowDrop="True" Drop="Grid_Drop">
-        <vlc:VlcControl x:Name="VlcControl" />
-        <TextBox x:Name="tbPath" VerticalAlignment="Center" Margin="20" Visibility="Hidden" KeyDown="TbPath_KeyDown"></TextBox>
+    <Grid AllowDrop="True" Drop="Grid_Drop" Background="Black">
+        <vlc:VlcControl x:Name="VlcControl" Margin="10,30"/>
+        <TextBlock x:Name="title" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" 
+                   Foreground="WhiteSmoke" Background="Transparent" Visibility="Hidden"/>
         <TextBlock x:Name="progress" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" 
-                   Foreground="Yellow" Background="Transparent" FontSize="20" Visibility="Hidden"/>
+                   Foreground="Yellow" Background="Transparent" Visibility="Hidden"/>
         <TextBlock x:Name="volumn" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" 
-                   Foreground="Yellow" Background="Transparent" FontSize="20" Visibility="Hidden"/>
+                   Foreground="Yellow" Background="Transparent" Visibility="Hidden"/>
     </Grid>
 </Window>

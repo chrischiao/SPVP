@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-//using System.Windows.Threading;
 using System.Threading;
 
 namespace SPVP
@@ -28,6 +27,8 @@ namespace SPVP
 
         private bool _isPause = false;
         private bool _isPlaying = false;
+        private System.Timers.Timer _progressTimer = new System.Timers.Timer();
+        private System.Timers.Timer _volumnTimer = new System.Timers.Timer();
 
         public string VideoPath { get; set; }
 
@@ -36,14 +37,18 @@ namespace SPVP
         public MainWindow()
         {
             InitializeComponent();
-        }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
+
             var currentAssembly = Assembly.GetEntryAssembly();
             var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
             var libDirectory = new DirectoryInfo(System.IO.Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "win-x86" : "win-x64"));
             this.VlcControl.SourceProvider.CreatePlayer(libDirectory);
 
+            _progressTimer.Elapsed += ProgressTimer_Elapsed;
+            _volumnTimer.Elapsed += VolumnTimer_Elapsed;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             if (Player != null)
             {
                 Player.Audio.Volume = 30;
@@ -56,26 +61,13 @@ namespace SPVP
             }
         }
 
-        private void Open(object sender, ExecutedRoutedEventArgs e)
+        private void Window_Closed(object sender, EventArgs e)
         {
-            if (Player != null)
-            {
-                this.tbPath.Visibility = Visibility.Visible;
-                this.tbPath.Focus();
-            }
-        }
+            _volumnTimer.Close();
 
-        private void TbPath_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (Player != null && e.Key == Key.Enter)
+            if (_isPlaying)
             {
-                string filePath = this.tbPath.Text.Trim('"');
-                if (File.Exists(filePath))
-                {
-                    this.tbPath.Text = "";
-                    this.tbPath.Visibility = Visibility.Hidden;
-                    Play(filePath);
-                }
+                Stop();
             }
         }
 
@@ -85,28 +77,57 @@ namespace SPVP
             Play(file);
         }
 
+        private void ProgressTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            this.Dispatcher.BeginInvoke(new Action(() => { this.progress.Visibility = Visibility.Hidden; }));
+            _progressTimer.Stop();
+        }
+
+        private void VolumnTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            this.Dispatcher.BeginInvoke(new Action(() => { this.volumn.Visibility = Visibility.Hidden; }));
+            _volumnTimer.Stop();
+        }
+
         private void Play(string filePath)
         {
             try
             {
                 Player.Play(new Uri(filePath));
                 _isPlaying = true;
+                this.title.Text = System.IO.Path.GetFileName(filePath);
             }
             catch
             { }
         }
 
-        private void Close(object sender, ExecutedRoutedEventArgs e)
+        private void Stop()
         {
             if (_isPlaying)
             {
                 new Task(() =>
                 {
-                    this.VlcControl.SourceProvider.MediaPlayer.Stop();//这里要开线程处理，不然会阻塞播放
+                    Player.Stop();//这里要开线程处理，不然会阻塞播放
                     _isPlaying = false;
 
                 }).Start();
             }
+        }
+
+        private void Open(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Player != null)
+            {
+                var ofd = new Microsoft.Win32.OpenFileDialog();
+                var result = ofd.ShowDialog();
+                if (result.HasValue && result.Value)
+                    Play(ofd.FileName);
+            }
+        }
+
+        private void Stop(object sender, ExecutedRoutedEventArgs e)
+        {
+            Stop();
         }
 
         #region progress
@@ -117,16 +138,15 @@ namespace SPVP
             {
                 if (_isPause)
                 {
-                    Player.Play();
-                    HideProgress();
+                    EndPause();
                 }
                 else
                 {
                     Player.Pause();
+                    _isPause = true;
+                    this.title.Visibility = Visibility.Visible;
                     ShowProgress();
                 }
-
-                _isPause = !_isPause;
             }
         }
 
@@ -136,8 +156,7 @@ namespace SPVP
             {
                 if (_isPause)
                 {
-                    Player.Play();
-                    _isPause = false;
+                    EndPause();
                     return;
                 }
 
@@ -145,8 +164,7 @@ namespace SPVP
                 if(Player.Position +p < 0.99)
                     Player.Position += p; // Position为百分比，要小于1，等于1会停止
 
-                ShowProgress();
-                HideProgress(2000);
+                ShowProgress(1500);
             }
         }
 
@@ -156,8 +174,7 @@ namespace SPVP
             {
                 if (_isPause)
                 {
-                    Player.Play();
-                    _isPause = false;
+                    EndPause();
                     return;
                 }
 
@@ -165,31 +182,31 @@ namespace SPVP
                 if (Player.Position - p > 0.0)
                     Player.Position -= p;
 
-                ShowProgress();
-                HideProgress(2000);
+                ShowProgress(1500);
             }
         }
 
-        private void ShowProgress()
+        private void EndPause()
         {
-            int totalMins = (int)(Player.Length / 1000 / 60);
-            int current = (int)(totalMins * Player.Position);
-            this.progress.Text = $"{current} / {totalMins}";
+            this.title.Visibility = Visibility.Hidden;
+            this.progress.Visibility = Visibility.Hidden;
+            Player.Play();
+            _isPause = false;
+        }
+
+        private void ShowProgress(int duration = -1)
+        {
+            string total = TimeSpan.FromSeconds((int)(Player.Length / 1000)).ToString();
+            string current = TimeSpan.FromSeconds((int)(Player.Time / 1000)).ToString();
+            this.progress.Text = $"{current} / {total}";
             this.progress.Visibility = Visibility.Visible;
-        }
 
-        private void HideProgress(int delay = 0)
-        {
-            if (delay > 100)
+            if (duration > 100)
             {
-                new Thread(() =>
-                {
-                    Thread.Sleep(delay);
-                    this.Dispatcher.BeginInvoke(new Action(() => { this.progress.Visibility = Visibility.Hidden; }));
-                }).Start();
+                _progressTimer.Stop();
+                _progressTimer.Interval = duration;
+                _progressTimer.Start();
             }
-            else
-                this.progress.Visibility = Visibility.Hidden;
         }
 
         #endregion
@@ -234,15 +251,17 @@ namespace SPVP
                 Player.Audio.ToggleMute();
         }
 
-        private void ShowVolumn(int duration = 2000)
+        private void ShowVolumn(int duration = 3000)
         {
-            this.volumn.Text = Player.Audio.Volume.ToString();
-            this.volumn.Visibility = Visibility.Visible;
-            new Thread(() =>
+            if (duration > 100)
             {
-                Thread.Sleep(2000);
-                this.Dispatcher.BeginInvoke(new Action(() => { this.volumn.Visibility = Visibility.Hidden; }));
-            }).Start();
+                this.volumn.Text = Player.Audio.Volume.ToString();
+                this.volumn.Visibility = Visibility.Visible;
+
+                _volumnTimer.Stop();
+                _volumnTimer.Interval = duration;
+                _volumnTimer.Start();
+            }
         }
 
         #endregion
