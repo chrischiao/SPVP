@@ -123,7 +123,22 @@
   </Target>
   <Import Project="..\packages\Fody.3.3.5\build\Fody.targets" Condition="Exists('..\packages\Fody.3.3.5\build\Fody.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy /s /h /y $(TargetDir)libvlc\win-x64\libvlc.dll $(TargetDir)libvlc\x64\
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\libvlccore.dll $(TargetDir)libvlc\x64\
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\plugins\access\libfilesystem_plugin.dll $(TargetDir)libvlc\x64\plugins\access\
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\plugins\audio_output\*.* $(TargetDir)libvlc\x64\plugins\audio_output\*.*  
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\plugins\codec\*.* $(TargetDir)libvlc\x64\plugins\codec\*.*  
+xcopy /s /h /y  $(TargetDir)libvlc\win-x64\plugins\demux\*.* $(TargetDir)libvlc\x64\plugins\demux\*.* 
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\plugins\video_chroma\*.* $(TargetDir)libvlc\x64\plugins\video_chroma\*.*  
+xcopy /s /h /y $(TargetDir)libvlc\win-x64\plugins\video_output\*.* $(TargetDir)libvlc\x64\plugins\video_output\*.*  
+
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\libvlc.dll $(TargetDir)libvlc\x86\
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\libvlccore.dll $(TargetDir)libvlc\x86\
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\plugins\access\libfilesystem_plugin.dll $(TargetDir)libvlc\x86\plugins\access\
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\plugins\audio_output\*.* $(TargetDir)libvlc\x86\plugins\audio_output\*.*  
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\plugins\codec\*.* $(TargetDir)libvlc\x86\plugins\codec\*.*  
+xcopy /s /h /y  $(TargetDir)libvlc\win-x86\plugins\demux\*.* $(TargetDir)libvlc\x86\plugins\demux\*.* 
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\plugins\video_chroma\*.* $(TargetDir)libvlc\x86\plugins\video_chroma\*.*  
+xcopy /s /h /y $(TargetDir)libvlc\win-x86\plugins\video_output\*.* $(TargetDir)libvlc\x86\plugins\video_output\*.*</PostBuildEvent>
   </PropertyGroup>
 </Project>

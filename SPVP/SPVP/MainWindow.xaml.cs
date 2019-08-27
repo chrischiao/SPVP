@@ -40,7 +40,11 @@ namespace SPVP
 
             var currentAssembly = Assembly.GetEntryAssembly();
             var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
+#if DEBUG
             var libDirectory = new DirectoryInfo(System.IO.Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "win-x86" : "win-x64"));
+#else
+            var libDirectory = new DirectoryInfo(System.IO.Path.Combine(currentDirectory, "libvlc", IntPtr.Size == 4 ? "x86" : "x64"));
+#endif
             this.VlcControl.SourceProvider.CreatePlayer(libDirectory);
 
             _progressTimer.Elapsed += ProgressTimer_Elapsed;
@@ -125,7 +129,7 @@ namespace SPVP
             Stop();
         }
 
-        #region progress
+#region progress
 
         private void TogglePause(object sender, ExecutedRoutedEventArgs e)
         {
@@ -205,9 +209,9 @@ namespace SPVP
             }
         }
 
-        #endregion
+#endregion
 
-        #region Audio Volume
+#region Audio Volume
 
         //Audio.IsMute :静音和非静音
         //Audio.Volume：音量的百分比，值在0—200之间
@@ -260,6 +264,6 @@ namespace SPVP
             }
         }
 
-        #endregion
+#endregion
     }
 }
